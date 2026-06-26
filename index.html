@@ -3,996 +3,1252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel de Custo de Atividades — GG Commerce</title>
+<title>Quanto custa sua hora? — GG Commerce</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap');
 
-  :root {
-    --dark: #1A1A1A;
-    --surface: #232323;
-    --card: #2C2C2C;
-    --border: #383838;
-    --orange: #E8853A;
-    --orange-light: #F0A060;
-    --orange-dim: rgba(232,133,58,0.12);
-    --text: #F0EDE8;
-    --muted: #888;
-    --red: #E05555;
-    --red-dim: rgba(224,85,85,0.12);
-    --yellow: #E8C03A;
-    --yellow-dim: rgba(232,192,58,0.12);
-    --green: #4CAF72;
-    --green-dim: rgba(76,175,114,0.12);
-  }
+:root {
+  --dark: #1A1A1A;
+  --surface: #212121;
+  --card: #2C2C2C;
+  --border: #383838;
+  --orange: #E8853A;
+  --orange-light: #F0A060;
+  --orange-dim: rgba(232,133,58,0.13);
+  --text: #F0EDE8;
+  --muted: #888;
+  --red: #E05555;
+  --red-dim: rgba(224,85,85,0.12);
+  --yellow: #E8C03A;
+  --yellow-dim: rgba(232,192,58,0.12);
+  --green: #4CAF72;
+  --green-dim: rgba(76,175,114,0.12);
+  --radius: 12px;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
 
-  body {
-    background: var(--dark);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+/* ── HEADER ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 9px; height: 9px; background: var(--orange); border-radius: 50%; }
+.header-tag { font-size: 11px; color: var(--muted); }
 
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
 
-  .logo {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+/* ── WELCOME ── */
+#welcome {
+  min-height: calc(100vh - 53px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+#welcome.active { display: flex; }
 
-  .logo-dot { width: 10px; height: 10px; background: var(--orange); border-radius: 50%; }
+.welcome-badge {
+  display: inline-block;
+  background: var(--orange-dim);
+  color: var(--orange-light);
+  border: 1px solid rgba(232,133,58,0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
 
-  .header-meta { font-size: 12px; color: var(--muted); text-align: right; }
-  .header-meta strong { color: var(--orange); }
+.welcome-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 640px;
+}
 
-  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+.welcome-title span { color: var(--orange); }
 
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 16px;
-  }
+.welcome-desc {
+  font-size: 15px;
+  color: #aaa;
+  max-width: 480px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
 
-  /* SETTINGS BAR */
-  .settings-bar {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 24px;
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    flex-wrap: wrap;
-  }
+.btn-primary {
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 32px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover { background: var(--orange-light); }
+.btn-primary:active { transform: scale(0.97); }
 
-  .setting-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+.welcome-stats {
+  margin-top: 56px;
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
-  .setting-label {
-    font-size: 12px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
+.w-stat { text-align: center; }
+.w-stat-val { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--orange-light); }
+.w-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-  .setting-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    padding: 6px 12px;
-    width: 110px;
-    transition: border-color 0.2s;
-    outline: none;
-  }
+/* ── WIZARD ── */
+#wizard { display: none; max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+#wizard.active { display: block; }
 
-  .setting-input:focus { border-color: var(--orange); }
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 36px;
+}
 
-  .setting-input-sm {
-    width: 70px;
-    font-size: 13px;
-    font-weight: 600;
-  }
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  position: relative;
+}
 
-  .setting-hint { font-size: 11px; color: var(--muted); }
+.progress-step::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
 
-  .apply-btn {
-    background: var(--orange);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 18px;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
+.progress-step:last-child::after { display: none; }
 
-  .apply-btn:hover { background: var(--orange-light); }
-  .apply-btn:active { transform: scale(0.97); }
+.step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  position: relative; z-index: 1;
+  transition: all 0.3s;
+}
 
-  /* CARDS */
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 32px;
-  }
+.progress-step.done .step-dot { background: var(--green); border-color: var(--green); color: #fff; }
+.progress-step.active .step-dot { background: var(--orange); border-color: var(--orange); color: #fff; }
+.progress-step.active::after { background: var(--border); }
+.progress-step.done::after { background: var(--green); }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-  }
+.step-label { font-size: 10px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.progress-step.active .step-label { color: var(--orange-light); }
+.progress-step.done .step-label { color: var(--green); }
 
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
+/* ── FORM CARD ── */
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+}
 
-  .card.orange::before { background: var(--orange); }
-  .card.red::before    { background: var(--red); }
-  .card.green::before  { background: var(--green); }
-  .card.yellow::before { background: var(--yellow); }
+.form-card h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
 
-  .card-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 500; letter-spacing: 0.04em; }
-  .card-value { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
-  .card.orange .card-value { color: var(--orange-light); }
-  .card.red .card-value    { color: var(--red); }
-  .card.green .card-value  { color: var(--green); }
-  .card.yellow .card-value { color: var(--yellow); }
-  .card-sub { font-size: 11px; color: var(--muted); }
+.form-card p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
 
-  /* ALERT */
-  .alert {
-    background: var(--red-dim);
-    border: 1px solid rgba(224,85,85,0.3);
-    border-radius: 10px;
-    padding: 14px 20px;
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-  }
-  .alert strong { color: var(--red); }
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
 
-  /* TABLE */
-  .table-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 32px;
-  }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ccc;
+  margin-bottom: 7px;
+  letter-spacing: 0.02em;
+}
 
-  table { width: 100%; border-collapse: collapse; }
+.field label .req { color: var(--orange); margin-left: 2px; }
 
-  thead th {
-    background: var(--surface);
-    padding: 10px 16px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-  }
+.field input, .field select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
 
-  .task-row {
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+.field input:focus, .field select:focus { border-color: var(--orange); }
+.field input::placeholder { color: var(--muted); }
 
-  .task-row:hover { background: rgba(255,255,255,0.025); }
-  .task-row.expanded { background: rgba(232,133,58,0.05); border-color: rgba(232,133,58,0.15); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
 
-  .task-row td {
-    padding: 13px 16px;
-    font-size: 13px;
-    vertical-align: middle;
-  }
+.field-error { font-size: 11px; color: var(--red); margin-top: 5px; display: none; }
+.field.has-error input { border-color: var(--red); }
+.field.has-error .field-error { display: block; }
 
-  .expand-detail {
-    display: none;
-    background: rgba(232,133,58,0.04);
-    border-bottom: 1px solid rgba(232,133,58,0.12);
-  }
+/* ── TASKS STEP ── */
+.tasks-intro {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
 
-  .expand-detail.open { display: table-row; }
+.task-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
 
-  .expand-inner {
-    padding: 16px 16px 20px 48px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
+.task-item.active-task {
+  border-color: rgba(232,133,58,0.4);
+  background: rgba(232,133,58,0.05);
+}
 
-  .detail-block strong {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 6px;
-  }
+.task-toggle {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  cursor: pointer;
+}
 
-  .detail-block p, .detail-block li {
-    font-size: 12px;
-    color: #bbb;
-    line-height: 1.6;
-  }
+.task-item.active-task .task-toggle {
+  background: var(--orange);
+  border-color: var(--orange);
+}
 
-  .detail-block ul { list-style: none; }
-  .detail-block ul li::before { content: '→ '; color: var(--orange); }
+.task-toggle::after {
+  content: '✓';
+  font-size: 11px;
+  color: #fff;
+  display: none;
+  font-weight: 700;
+}
 
-  .chevron {
-    display: inline-block;
-    font-size: 10px;
-    color: var(--muted);
-    transition: transform 0.2s;
-    margin-right: 8px;
-  }
-  .expanded .chevron { transform: rotate(90deg); }
+.task-item.active-task .task-toggle::after { display: block; }
 
-  .task-name { font-weight: 500; }
+.task-info { min-width: 0; }
+.task-name-text { font-size: 13px; font-weight: 500; display: block; }
+.task-cat-text {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 1px;
+  display: block;
+}
 
-  .tag {
-    display: inline-block;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .tag-red    { background: var(--red-dim);    color: var(--red);          border: 1px solid rgba(224,85,85,0.25); }
-  .tag-yellow { background: var(--yellow-dim); color: var(--yellow);       border: 1px solid rgba(232,192,58,0.25); }
-  .tag-green  { background: var(--green-dim);  color: var(--green);        border: 1px solid rgba(76,175,114,0.25); }
-  .tag-orange { background: var(--orange-dim); color: var(--orange-light); border: 1px solid rgba(232,133,58,0.25); }
+.task-hours-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
 
-  .cost-value { font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: var(--orange-light); }
-  .cost-highlight { color: var(--red); }
+.task-item.active-task .task-hours-wrap {
+  opacity: 1;
+  pointer-events: all;
+}
 
-  .total-row td { font-weight: 700; background: rgba(232,133,58,0.06); border-top: 1px solid rgba(232,133,58,0.2); }
+.task-hours-input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  width: 58px;
+  text-align: center;
+  padding: 6px 4px;
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s;
+}
 
-  /* EDITABLE HOURS */
-  .hours-input {
-    background: transparent;
-    border: none;
-    border-bottom: 1px dashed var(--border);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    width: 48px;
-    text-align: center;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .hours-input:focus { border-color: var(--orange); }
+.task-hours-input:focus { border-color: var(--orange); }
+.task-hours-lbl { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
-  /* CHARTS */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+/* Add custom task */
+.add-task-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 
-  .chart-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-  }
-  .chart-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 20px; }
-  canvas { max-height: 220px; }
+.add-task-btn:hover { border-color: var(--orange); color: var(--orange-light); }
 
-  .legend { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.custom-task-form {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 10px;
+  gap: 12px;
+}
 
-  /* PRIORITIES */
-  .priority-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 32px;
-  }
+.custom-task-form.open { display: flex; flex-direction: column; }
 
-  .priority-item {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+.custom-task-form input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+}
 
-  .priority-item:hover { background: rgba(255,255,255,0.02); }
-  .priority-item:last-child { border-bottom: none; }
-  .priority-item.p-open { background: rgba(232,133,58,0.05); }
+.custom-task-form input:focus { border-color: var(--orange); }
 
-  .priority-num {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--orange);
-    min-width: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid var(--border);
-    padding: 20px;
-  }
+.custom-task-actions { display: flex; gap: 8px; }
 
-  .priority-summary {
-    flex: 1;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
+.btn-sm {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
 
-  .priority-summary strong { font-size: 14px; font-weight: 600; display: block; margin-bottom: 3px; }
-  .priority-summary p { font-size: 12px; color: var(--muted); }
+.btn-confirm { background: var(--orange); color: #fff; }
+.btn-confirm:hover { background: var(--orange-light); }
+.btn-cancel-sm { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
 
-  .priority-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+/* ── NAV BUTTONS ── */
+.form-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
 
-  .saving-badge {
-    display: inline-block;
-    background: var(--green-dim);
-    color: var(--green);
-    border: 1px solid rgba(76,175,114,0.25);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
 
-  .p-chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
-  .p-open .p-chevron { transform: rotate(90deg); }
+.btn-back:hover { border-color: var(--orange); color: var(--orange-light); }
 
-  .priority-detail {
-    display: none;
-    border-top: 1px solid rgba(232,133,58,0.12);
-    padding: 20px 24px 20px 84px;
-    background: rgba(232,133,58,0.03);
-  }
-  .priority-detail.open { display: block; }
-  .priority-detail p { font-size: 13px; color: #bbb; margin-bottom: 10px; }
-  .priority-detail ul { list-style: none; }
-  .priority-detail ul li { font-size: 12px; color: #aaa; margin-bottom: 4px; }
-  .priority-detail ul li::before { content: '→ '; color: var(--orange); }
+.btn-next {
+  flex: 1;
+  background: var(--orange);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px 24px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  touch-action: manipulation;
+}
 
-  footer {
-    text-align: center;
-    padding: 24px;
-    font-size: 11px;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-  }
-  footer span { color: var(--orange); }
+.btn-next:hover { background: var(--orange-light); }
+.btn-next:active { transform: scale(0.98); }
 
-  @media (max-width: 768px) {
-    .cards { grid-template-columns: repeat(2, 1fr); }
-    .two-col { grid-template-columns: 1fr; }
-    .expand-inner { grid-template-columns: 1fr; }
-    thead th:nth-child(3) { display: none; }
-    td:nth-child(3) { display: none; }
-    .settings-bar { gap: 16px; }
-  }
+/* ── RESULTS PANEL ── */
+#results { display: none; max-width: 1100px; margin: 0 auto; padding: 28px 16px 64px; }
+#results.active { display: block; }
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.results-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+.results-title span { color: var(--orange); }
+
+.btn-restart {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-restart:hover { border-color: var(--orange); color: var(--orange-light); }
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 14px;
+}
+
+/* cards */
+.r-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.r-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; position: relative; overflow: hidden; }
+.r-card::before { content:''; position:absolute; top:0;left:0;right:0;height:3px; }
+.r-card.or::before { background:var(--orange); }
+.r-card.gr::before { background:var(--green); }
+.r-card.ye::before { background:var(--yellow); }
+.r-card.re::before { background:var(--red); }
+.r-clabel { font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:500;line-height:1.4; }
+.r-cval { font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1;margin-bottom:5px; }
+.r-card.or .r-cval { color:var(--orange-light); }
+.r-card.gr .r-cval { color:var(--green); }
+.r-card.ye .r-cval { color:var(--yellow); }
+.r-card.re .r-cval { color:var(--red); }
+.r-csub { font-size:10px;color:var(--muted);line-height:1.4; }
+
+/* alert */
+.r-alert { background:var(--red-dim);border:1px solid rgba(224,85,85,0.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.55; }
+.r-alert strong { color:var(--red); }
+
+/* table */
+.r-table-wrap { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px; }
+.r-table-scroll { overflow-x:auto;-webkit-overflow-scrolling:touch; }
+table { width:100%;border-collapse:collapse;min-width:520px; }
+thead th { background:var(--surface);padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap; }
+.t-row { border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background .15s; }
+.t-row:hover { background:rgba(255,255,255,0.025); }
+.t-row.expanded { background:rgba(232,133,58,0.05); }
+.t-row td { padding:11px 12px;font-size:13px;vertical-align:middle; }
+.t-detail { display:none;background:rgba(232,133,58,0.04);border-bottom:1px solid rgba(232,133,58,0.12); }
+.t-detail.open { display:table-row; }
+.t-expand { padding:14px 14px 18px 40px;display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:520px; }
+.d-block strong { display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:6px; }
+.d-block p,.d-block li { font-size:12px;color:#bbb;line-height:1.6; }
+.d-block ul { list-style:none; }
+.d-block ul li::before { content:'→ ';color:var(--orange); }
+.d-block ul li { margin-bottom:3px; }
+.chev { display:inline-block;font-size:9px;color:var(--muted);transition:transform .2s;margin-right:6px; }
+.expanded .chev { transform:rotate(90deg); }
+.t-name { font-weight:500; }
+.tag { display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap; }
+.tag-r { background:var(--red-dim);color:var(--red);border:1px solid rgba(224,85,85,0.25); }
+.tag-y { background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(232,192,58,0.25); }
+.tag-g { background:var(--green-dim);color:var(--green);border:1px solid rgba(76,175,114,0.25); }
+.tag-o { background:var(--orange-dim);color:var(--orange-light);border:1px solid rgba(232,133,58,0.25); }
+.cv { font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--orange-light);white-space:nowrap; }
+.cv-r { color:var(--red); }
+.total-row td { font-weight:700;background:rgba(232,133,58,0.06);border-top:1px solid rgba(232,133,58,0.2); }
+
+/* charts */
+.two-col { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px; }
+.ch-card { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px; }
+.ch-card h3 { font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;margin-bottom:14px; }
+canvas { max-height:200px; }
+.legend { display:flex;gap:12px;margin-top:14px;flex-wrap:wrap; }
+.legend-item { display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted); }
+.leg-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0; }
+
+/* priorities */
+.p-card { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px; }
+.p-item { display:flex;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s; }
+.p-item:hover { background:rgba(255,255,255,.02); }
+.p-item:last-of-type { border-bottom:none; }
+.p-item.p-open { background:rgba(232,133,58,.05); }
+.p-num { font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--orange);min-width:52px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:14px 10px;flex-shrink:0; }
+.p-sum { flex:1;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0; }
+.p-text { min-width:0; }
+.p-sum strong { font-size:13px;font-weight:600;display:block;margin-bottom:2px;line-height:1.4; }
+.p-sum p { font-size:11px;color:var(--muted); }
+.p-right { display:flex;align-items:center;gap:8px;flex-shrink:0; }
+.s-badge { display:inline-block;background:var(--green-dim);color:var(--green);border:1px solid rgba(76,175,114,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap; }
+.p-chev { font-size:10px;color:var(--muted);transition:transform .2s; }
+.p-open .p-chev { transform:rotate(90deg); }
+.p-detail { display:none;border-top:1px solid rgba(232,133,58,.12);padding:14px 16px 16px 62px;background:rgba(232,133,58,.03); }
+.p-detail.open { display:block; }
+.p-detail p { font-size:13px;color:#bbb;margin-bottom:10px;line-height:1.6; }
+.p-detail ul { list-style:none; }
+.p-detail ul li { font-size:12px;color:#aaa;margin-bottom:5px; }
+.p-detail ul li::before { content:'→ ';color:var(--orange); }
+
+footer { text-align:center;padding:20px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border); }
+footer a { color:var(--orange);text-decoration:none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width:900px) {
+  .r-cards { grid-template-columns:repeat(2,1fr); }
+  .two-col { grid-template-columns:1fr; }
+}
+@media (max-width:600px) {
+  .welcome-stats { gap:20px; }
+  .field-row { grid-template-columns:1fr; }
+  .r-cards { gap:8px; }
+  .r-card { padding:12px; }
+  .r-cval { font-size:20px; }
+  .r-clabel,.r-csub { font-size:9px; }
+  .t-expand { grid-template-columns:1fr;padding:12px 12px 16px 32px; }
+  .p-num { min-width:42px;font-size:18px;padding:12px 8px; }
+  .p-sum { padding:10px 10px; }
+  .p-sum strong { font-size:12px; }
+  .p-detail { padding:12px 12px 14px 50px; }
+  .p-right .s-badge { display:none; }
+  .col-cat,.col-freq { display:none; }
+  .form-card { padding:20px 16px; }
+  .task-item { grid-template-columns:auto 1fr; }
+  .task-hours-wrap { grid-column:1/-1; justify-content:flex-end; }
+}
+@media (max-width:380px) {
+  .r-cval { font-size:17px; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    GG Commerce
-  </div>
-  <div class="header-meta">
-    Cliente: <strong>Chlorophylla</strong> &nbsp;·&nbsp; Contrato: <strong>R$ 4.000/mês</strong> &nbsp;·&nbsp; Junho 2026
-  </div>
+  <div class="logo"><div class="logo-dot"></div>GG Commerce</div>
+  <span class="header-tag">Calculadora de Custo por Projeto</span>
 </header>
 
-<main>
+<!-- WELCOME -->
+<section id="welcome" class="screen active">
+  <div class="welcome-badge">Ferramenta gratuita</div>
+  <h1 class="welcome-title">Quanto custa sua hora<br>em cada <span>projeto</span>?</h1>
+  <p class="welcome-desc">Mapeie suas atividades, descubra o real custo do seu tempo e identifique o que automatizar ou delegar para escalar sua consultoria.</p>
+  <button class="btn-primary" onclick="goToWizard()">Fazer meu diagnóstico →</button>
+  <div class="welcome-stats">
+    <div class="w-stat"><div class="w-stat-val">3 min</div><div class="w-stat-lbl">para preencher</div></div>
+    <div class="w-stat"><div class="w-stat-val">100%</div><div class="w-stat-lbl">gratuito e anônimo</div></div>
+    <div class="w-stat"><div class="w-stat-val">R$/h</div><div class="w-stat-lbl">custo real revelado</div></div>
+  </div>
+</section>
 
-  <!-- SETTINGS BAR -->
-  <div class="section-label">Configurações do painel</div>
-  <div class="settings-bar">
-    <div class="setting-group">
-      <span class="setting-label">Valor/hora (mercado)</span>
-      <input class="setting-input" id="hourlyRate" type="number" value="350" min="50" max="2000" step="10">
-      <span class="setting-hint">R$/h</span>
+<!-- WIZARD -->
+<section id="wizard" class="screen">
+
+  <!-- Progress -->
+  <div class="progress-bar">
+    <div class="progress-step active" id="ps1">
+      <div class="step-dot">1</div>
+      <span class="step-label">Seu projeto</span>
     </div>
-    <div class="setting-group">
-      <span class="setting-label">Contrato mensal</span>
-      <input class="setting-input" id="monthlyContract" type="number" value="4000" min="0" step="100">
-      <span class="setting-hint">R$</span>
+    <div class="progress-step" id="ps2">
+      <div class="step-dot">2</div>
+      <span class="step-label">Atividades</span>
     </div>
-    <div class="setting-group">
-      <span class="setting-label">Semanas/mês</span>
-      <input class="setting-input setting-input-sm" id="weeksPerMonth" type="number" value="4" min="1" max="5" step="1">
+    <div class="progress-step" id="ps3">
+      <div class="step-dot">3</div>
+      <span class="step-label">Resultado</span>
     </div>
-    <button class="apply-btn" onclick="recalculate()">↻ Recalcular</button>
-    <span class="setting-hint" style="margin-left:auto">Clique em qualquer linha ou ação para expandir detalhes</span>
   </div>
 
-  <!-- CARDS -->
+  <!-- STEP 1 -->
+  <div id="step1">
+    <div class="form-card">
+      <h2>Dados do seu projeto</h2>
+      <p>Preencha com as informações do contrato que deseja analisar. Você pode usar valores de referência se preferir.</p>
+
+      <div class="field-row">
+        <div class="field" id="f-name">
+          <label>Seu nome <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+          <input type="text" id="inp-name" placeholder="Ex: João Silva">
+        </div>
+        <div class="field" id="f-project">
+          <label>Nome do projeto / cliente <span class="req">*</span></label>
+          <input type="text" id="inp-project" placeholder="Ex: Loja do João">
+          <span class="field-error">Informe o nome do projeto</span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="f-contract">
+          <label>Valor do contrato mensal (R$) <span class="req">*</span></label>
+          <input type="number" id="inp-contract" placeholder="Ex: 3000" min="0" step="100">
+          <span class="field-hint">Quanto você recebe por mês neste projeto</span>
+          <span class="field-error">Informe o valor do contrato</span>
+        </div>
+        <div class="field" id="f-rate">
+          <label>Seu valor/hora de mercado (R$) <span class="req">*</span></label>
+          <input type="number" id="inp-rate" placeholder="Ex: 300" min="0" step="10">
+          <span class="field-hint">O que um consultor sênior como você cobra</span>
+          <span class="field-error">Informe o valor/hora</span>
+        </div>
+      </div>
+
+      <div class="field" id="f-weeks">
+        <label>Semanas trabalhadas por mês <span class="req">*</span></label>
+        <select id="inp-weeks">
+          <option value="4" selected>4 semanas</option>
+          <option value="4.5">4,5 semanas</option>
+          <option value="5">5 semanas</option>
+          <option value="3">3 semanas (mês curto)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-nav">
+      <button class="btn-back" onclick="goToWelcome()">← Voltar</button>
+      <button class="btn-next" onclick="goToStep2()">Próximo: Atividades →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none">
+    <div class="form-card">
+      <h2>Suas atividades no projeto</h2>
+      <p>Ative as tarefas que você realiza e ajuste as horas semanais de cada uma. Adicione tarefas personalizadas se precisar.</p>
+
+      <p class="tasks-intro" style="margin-bottom:14px">Selecione pelo menos 2 atividades:</p>
+
+      <div id="tasksList"></div>
+
+      <button class="add-task-btn" onclick="toggleCustomForm()">+ Adicionar atividade personalizada</button>
+
+      <div class="custom-task-form" id="customForm">
+        <input type="text" id="customName" placeholder="Nome da atividade (ex: Gestão de e-mail marketing)">
+        <div class="field-row" style="margin:0">
+          <input type="number" id="customHours" placeholder="Horas/semana" min="0.25" step="0.25">
+          <select id="customAction" style="background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+            <option value="auto">🤖 Automatizar</option>
+            <option value="delegate">👤 Delegar</option>
+            <option value="keep" selected>✅ Estratégico</option>
+          </select>
+        </div>
+        <div class="custom-task-actions">
+          <button class="btn-sm btn-confirm" onclick="addCustomTask()">Adicionar</button>
+          <button class="btn-sm btn-cancel-sm" onclick="toggleCustomForm()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-nav">
+      <button class="btn-back" onclick="goToStep1()">← Voltar</button>
+      <button class="btn-next" onclick="goToResults()">Ver meu diagnóstico →</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- RESULTS -->
+<section id="results" class="screen">
+  <div class="results-header">
+    <div>
+      <div class="section-label">Diagnóstico completo</div>
+      <div class="results-title">Projeto: <span id="r-projectName">—</span></div>
+    </div>
+    <button class="btn-restart" onclick="restart()">↺ Novo diagnóstico</button>
+  </div>
+
   <div class="section-label">Resumo executivo</div>
-  <div class="cards">
-    <div class="card orange">
-      <div class="card-label">Horas trabalhadas / mês</div>
-      <div class="card-value" id="c-hours">46h</div>
-      <div class="card-sub" id="c-hours-sub">~11.5h/semana × 4 semanas</div>
-    </div>
-    <div class="card green">
-      <div class="card-label">Recebendo / hora</div>
-      <div class="card-value" id="c-impliedRate">R$87</div>
-      <div class="card-sub" id="c-impliedRate-sub">R$ 4.000 ÷ 46h</div>
-    </div>
-    <div class="card yellow">
-      <div class="card-label">Valor de mercado / hora</div>
-      <div class="card-value" id="c-marketRate">R$350</div>
-      <div class="card-sub">Sênior: R$ 300–400/h</div>
-    </div>
-    <div class="card red">
-      <div class="card-label">Custo real do mês</div>
-      <div class="card-value" id="c-realCost">R$16.100</div>
-      <div class="card-sub" id="c-realCost-sub">46h × R$ 350 = custo de oportunidade</div>
+  <div class="r-cards">
+    <div class="r-card or"><div class="r-clabel">Horas trabalhadas / mês</div><div class="r-cval" id="rc-hours">—</div><div class="r-csub" id="rc-hours-sub">—</div></div>
+    <div class="r-card gr"><div class="r-clabel">Recebendo / hora</div><div class="r-cval" id="rc-implied">—</div><div class="r-csub" id="rc-implied-sub">—</div></div>
+    <div class="r-card ye"><div class="r-clabel">Valor de mercado / hora</div><div class="r-cval" id="rc-market">—</div><div class="r-csub">Referência que você informou</div></div>
+    <div class="r-card re"><div class="r-clabel">Custo real do mês</div><div class="r-cval" id="rc-real">—</div><div class="r-csub" id="rc-real-sub">—</div></div>
+  </div>
+
+  <div class="r-alert">
+    <div style="font-size:18px;flex-shrink:0;margin-top:1px">⚠️</div>
+    <div id="r-alertText">—</div>
+  </div>
+
+  <div class="section-label">Mapa de atividades — clique para expandir</div>
+  <div class="r-table-wrap">
+    <div class="r-table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:26px"></th>
+            <th>Atividade</th>
+            <th class="col-cat">Categoria</th>
+            <th class="col-freq">Freq.</th>
+            <th>Horas/mês</th>
+            <th>Custo real</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="r-tbody"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- ALERT -->
-  <div class="alert">
-    <div style="font-size:20px;flex-shrink:0">⚠️</div>
-    <div id="alertText">
-      Você entrega <strong>R$ 16.100</strong> de valor de mercado e recebe <strong>R$ 4.000</strong>. O gap de <strong>R$ 12.100/mês</strong> é composto principalmente por tarefas repetitivas que podem ser automatizadas ou delegadas. As ações abaixo podem recuperar até <strong>14h/mês</strong> sem perder qualidade.
-    </div>
-  </div>
-
-  <!-- TABLE -->
-  <div class="section-label">Mapa de atividades — clique em uma linha para expandir</div>
-  <div class="table-wrap">
-    <table id="tasksTable">
-      <thead>
-        <tr>
-          <th style="width:30px"></th>
-          <th>Atividade</th>
-          <th>Categoria</th>
-          <th>Frequência</th>
-          <th>Horas/mês</th>
-          <th>Custo real</th>
-          <th>Potencial</th>
-        </tr>
-      </thead>
-      <tbody id="tasksBody">
-      </tbody>
-    </table>
-  </div>
-
-  <!-- CHARTS -->
   <div class="two-col">
-    <div class="chart-card">
+    <div class="ch-card">
       <h3>Horas por potencial de ação</h3>
       <canvas id="donutChart"></canvas>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> <span id="leg-auto">Automatizar (22h)</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> <span id="leg-del">Delegar/Otimizar (12h)</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> <span id="leg-keep">Estratégico (12h)</span></div>
+        <div class="legend-item"><div class="leg-dot" style="background:var(--red)"></div><span id="leg-a">Automatizar</span></div>
+        <div class="legend-item"><div class="leg-dot" style="background:var(--yellow)"></div><span id="leg-d">Delegar</span></div>
+        <div class="legend-item"><div class="leg-dot" style="background:var(--green)"></div><span id="leg-k">Estratégico</span></div>
       </div>
     </div>
-    <div class="chart-card">
+    <div class="ch-card">
       <h3>Custo mensal por atividade (R$)</h3>
       <canvas id="barChart"></canvas>
     </div>
   </div>
 
-  <!-- PRIORITIES -->
-  <div class="section-label">Plano de ação — clique para expandir cada prioridade</div>
-  <div class="priority-card" id="priorityCard"></div>
+  <div class="section-label">Plano de ação — clique para ver os detalhes</div>
+  <div class="p-card" id="r-priorities"></div>
 
-</main>
+</section>
 
 <footer>
-  GG Commerce · <span>Estruturamos e-commerces para crescer com previsibilidade</span> · Análise gerada em junho/2026
+  Ferramenta gratuita criada por <a href="https://www.ggcommerce.com.br" target="_blank">GG Commerce</a> · Estruturamos e-commerces para crescer com previsibilidade
 </footer>
 
 <script>
-// ─── DATA ─────────────────────────────────────────────────────────────────────
-const TASKS = [
-  {
-    id: 't1',
-    name: 'Checklist de plataformas',
-    category: 'Operacional',
-    categoryClass: 'tag-orange',
-    freq: '1× / semana',
-    hoursPerWeek: 0.5,
-    action: 'auto',
-    actionLabel: '🤖 Automatizar',
-    actionClass: 'tag-red',
-    costHighlight: true,
-    why: 'Você abre manualmente GA4, Meta e Google Ads toda segunda para confirmar que está tudo funcionando. É operação de checagem, não análise.',
-    how: [
-      'Configurar alertas automáticos no GA4 (queda de sessões, erros 4xx)',
-      'Alertas de CPA e ROAS no Google Ads e Meta',
-      'Dashboard de status no Looker Studio — você só olha quando tem alerta',
-      'Ferramentas: GA4 Alerts, Meta Automated Rules, Google Ads Smart Campaigns'
-    ]
-  },
-  {
-    id: 't2',
-    name: 'Coleta de dados + alimentar planilha',
-    category: 'Relatórios',
-    categoryClass: 'tag-orange',
-    freq: '1× / semana',
-    hoursPerWeek: 1,
-    action: 'auto',
-    actionLabel: '🤖 Automatizar',
-    actionClass: 'tag-red',
-    costHighlight: true,
-    why: 'Coleta manual de dados de GA4, Tray e plataformas de mídia para alimentar a planilha de apresentação. Tarefa 100% mecânica e repetível.',
-    how: [
-      'Looker Studio já com GA4 e Google Ads integrados (em andamento)',
-      'Conectar Meta Ads ao Looker Studio via conector oficial',
-      'Exportação automática semanal da Tray para Google Sheets',
-      'Prompt de IA para gerar narrativa do relatório — segunda-feira você só revisa'
-    ]
-  },
-  {
-    id: 't3',
-    name: 'Reunião semanal (Chlorophylla)',
-    category: 'Estratégico',
-    categoryClass: 'tag-green',
-    freq: '1× / semana',
-    hoursPerWeek: 1,
-    action: 'keep',
-    actionLabel: '✅ Manter',
-    actionClass: 'tag-green',
-    costHighlight: false,
-    why: 'Reunião de alinhamento com a dona e equipe. É o principal ponto de contato estratégico e de confiança com o cliente. Não deve ser eliminada.',
-    how: [
-      'Manter, mas otimizar com pauta estruturada enviada 24h antes',
-      'Usar relatório automático como base — reunião vira tomada de decisão, não leitura de dados',
-      'Gravar para registro e uso como briefing posterior'
-    ]
-  },
-  {
-    id: 't4',
-    name: 'Reunião com agência de mídia',
-    category: 'Estratégico',
-    categoryClass: 'tag-green',
-    freq: '2× / mês',
-    hoursPerWeek: 0.5,
-    action: 'keep',
-    actionLabel: '✅ Manter',
-    actionClass: 'tag-green',
-    costHighlight: false,
-    why: 'Reunião de alinhamento de performance com a agência de mídia paga. Ocorre 2× ao mês — frequência adequada para o escopo atual.',
-    how: [
-      'Enviar relatório automático antes da reunião para agilizar',
-      'Definir pauta padrão: o que rodou bem, o que ajustar, próximas ações',
-      'Avaliar se comunicação assíncrona pode substituir uma das reuniões no futuro'
-    ]
-  },
-  {
-    id: 't5',
-    name: 'Ajustes em ferramentas e plataformas',
-    category: 'Operacional',
-    categoryClass: 'tag-orange',
-    freq: '1× / semana',
-    hoursPerWeek: 1,
-    action: 'delegate',
-    actionLabel: '👤 Delegar',
-    actionClass: 'tag-yellow',
-    costHighlight: false,
-    why: 'Ajustes técnicos em ferramentas: configurações de tag, pixel, integrações, segmentos no GA4. Requer conhecimento técnico mas não necessariamente nível sênior.',
-    how: [
-      'Criar SOP (procedimento padrão) para os ajustes mais comuns',
-      'Avaliar delegação para estagiário técnico ou freelancer de ops',
-      'Manter só decisões de configuração estratégica com você'
-    ]
-  },
-  {
-    id: 't6',
-    name: 'Análise de dados + estratégias',
-    category: 'Estratégico',
-    categoryClass: 'tag-green',
-    freq: '1× / semana',
-    hoursPerWeek: 1,
-    action: 'keep',
-    actionLabel: '✅ Manter',
-    actionClass: 'tag-green',
-    costHighlight: false,
-    why: 'O coração do trabalho de consultoria. É aqui que você gera valor real: leitura dos dados, identificação de oportunidades e definição das próximas ações.',
-    how: [
-      'Usar Claude com prompt estruturado para agilizar a interpretação dos dados',
-      'Automatizar coleta (tarefa 2) libera mais tempo para esta análise',
-      'Documentar insights em base de conhecimento do cliente'
-    ]
-  },
-  {
-    id: 't7',
-    name: 'Monitoramento diário (Ter–Sex)',
-    category: 'Operacional',
-    categoryClass: 'tag-orange',
-    freq: '4× / semana',
-    hoursPerWeek: 4,
-    action: 'auto',
-    actionLabel: '🤖 Automatizar',
-    actionClass: 'tag-red',
-    costHighlight: true,
-    why: 'Maior consumidor de horas: 1h/dia, 4 dias por semana, apenas para olhar plataformas e verificar se algo mudou. Alta candidatura à automação.',
-    how: [
-      'GA4: alertas de sessões abaixo da média, taxa de conversão e receita',
-      'Meta Ads: regras automáticas para pausar criativos com CPM alto ou CTR baixo',
-      'Google Ads: alertas de ROAS abaixo do target e scripts de automação',
-      'Slack ou e-mail: receber resumo diário automático em vez de abrir o painel'
-    ]
-  },
-  {
-    id: 't8',
-    name: 'WhatsApp com cliente',
-    category: 'Atendimento',
-    categoryClass: 'tag-orange',
-    freq: 'Diário (~30min)',
-    hoursPerWeek: 2.5,
-    action: 'delegate',
-    actionLabel: '👤 Otimizar',
-    actionClass: 'tag-yellow',
-    costHighlight: false,
-    why: 'Comunicação assíncrona dispersa ao longo do dia. Interrupções frequentes reduzem foco e aumentam o tempo real gasto além dos 30min declarados.',
-    how: [
-      'Definir 2 janelas fixas de resposta: manhã (9h) e tarde (16h)',
-      'Criar banco de respostas rápidas para perguntas frequentes',
-      'Mensagem de status automático fora das janelas',
-      'Avaliar se parte das demandas pode ir para e-mail ou Notion'
-    ]
-  }
+// ─── TASK CATALOG ───────────────────────────────────────────────────────────
+const CATALOG = [
+  { id:'c1', name:'Checklist de plataformas', cat:'Operacional', action:'auto', hw:0.5,
+    why:'Verificação manual de ferramentas (GA4, Meta, Google Ads) para confirmar que está tudo funcionando. Tarefa de checagem, não de análise.',
+    how:['Alertas automáticos no GA4 (queda de sessões, erros)','Regras automáticas no Meta e Google Ads','Dashboard de status — você age só quando há alerta'] },
+  { id:'c2', name:'Coleta de dados e relatórios', cat:'Relatórios', action:'auto', hw:1,
+    why:'Exportação e compilação manual de dados de múltiplas plataformas. Alta repetição, baixo uso de inteligência.',
+    how:['Looker Studio com GA4 e Google Ads integrados','Conector Meta Ads para automação','Prompt de IA para gerar narrativa do relatório'] },
+  { id:'c3', name:'Reunião com cliente', cat:'Estratégico', action:'keep', hw:1,
+    why:'Principal ponto de contato estratégico e de confiança. Não deve ser eliminada.',
+    how:['Pauta estruturada enviada 24h antes','Usar relatório automático como base da reunião','Gravar para registro e briefing'] },
+  { id:'c4', name:'Reunião com agência / fornecedores', cat:'Estratégico', action:'keep', hw:0.5,
+    why:'Alinhamento de performance com parceiros externos. Frequência depende do escopo.',
+    how:['Enviar relatório antes para agilizar','Pauta padrão: o que rodou, ajustes, próximas ações','Avaliar comunicação assíncrona para reuniões de rotina'] },
+  { id:'c5', name:'Ajustes em ferramentas', cat:'Operacional', action:'delegate', hw:1,
+    why:'Configurações técnicas: tags, pixels, integrações. Requer conhecimento técnico mas não nível sênior.',
+    how:['Criar SOPs para os ajustes mais comuns','Avaliar delegação para freelancer técnico','Manter só decisões de configuração estratégica'] },
+  { id:'c6', name:'Análise de dados e estratégias', cat:'Estratégico', action:'keep', hw:1,
+    why:'O coração da consultoria. É onde você gera valor real: leitura dos dados e definição de ações.',
+    how:['Usar IA para agilizar interpretação dos dados','Automação da coleta libera mais tempo para análise','Documentar insights em base de conhecimento'] },
+  { id:'c7', name:'Monitoramento diário de campanhas', cat:'Operacional', action:'auto', hw:1,
+    why:'Abertura manual de painéis todo dia para verificar se algo mudou. Candidato número 1 à automação.',
+    how:['Alertas de ROAS, CPA e CTR automáticos','Regras de pausa/ativação por performance','Resumo diário por e-mail ou Slack — age só se houver alerta'] },
+  { id:'c8', name:'Atendimento (WhatsApp / e-mail)', cat:'Atendimento', action:'delegate', hw:0.5,
+    why:'Comunicação assíncrona dispersa ao longo do dia. Interrupções frequentes reduzem foco.',
+    how:['Janelas fixas de resposta (ex: 9h e 16h)','Banco de respostas para perguntas frequentes','Avaliar uso de e-mail para demandas não urgentes'] },
+  { id:'c9', name:'Criação de conteúdo / briefings', cat:'Estratégico', action:'keep', hw:1,
+    why:'Produção de briefings de criativos, estratégias de conteúdo e orientações para o time.',
+    how:['Templates de briefing reutilizáveis','IA para primeiro rascunho — você refina','Repositório centralizado de assets e histórico'] },
+  { id:'c10', name:'Gestão de marketplace (ML, Amazon)', cat:'Operacional', action:'delegate', hw:1,
+    why:'Atividades operacionais de marketplace: cadastro de produtos, fulfillment, SAC. Delegável com SOP.',
+    how:['Criar SOP detalhado de operação','Delegar para assistente ou freelancer','Manter só decisões estratégicas de precificação e mix'] },
 ];
 
-const PRIORITIES = [
-  {
-    num: 1,
-    title: 'Automatizar coleta de dados + relatório semanal',
-    summary: 'Looker Studio + prompt de IA — já em andamento',
-    saving: 'Libera 4h/mês',
-    detail: 'Com GA4 e Google Ads já conectados no Looker Studio, o próximo passo é integrar Meta Ads e criar o prompt de narrativa no Claude. O relatório deixa de ser montado manualmente — você só revisa e apresenta.',
-    steps: [
-      'Conectar Meta Ads ao Looker Studio (conector oficial gratuito)',
-      'Estruturar template de relatório no Looker Studio',
-      'Criar prompt Claude para gerar narrativa semanal com os dados exportados',
-      'Testar na segunda-feira seguinte — meta: economizar 45min de prep'
-    ]
-  },
-  {
-    num: 2,
-    title: 'Substituir monitoramento manual por alertas automáticos',
-    summary: 'GA4 Alerts + Meta Rules + Google Ads Scripts',
-    saving: 'Libera até 10h/mês',
-    detail: 'Em vez de abrir os painéis toda manhã, você só age quando o sistema dispara um alerta real. Você vai de reativo (olhar todo dia) para inteligente (agir quando há problema).',
-    steps: [
-      'GA4: criar alertas de sessões (-20%), receita (-15%), conversão (-10%)',
-      'Meta Ads: regras automáticas para CPM acima do target e CTR abaixo de 1%',
-      'Google Ads: script de alerta de ROAS e orçamento diário',
-      'Canal de recebimento: e-mail ou Slack — receber resumo às 9h e só abrir painel se houver alerta'
-    ]
-  },
-  {
-    num: 3,
-    title: 'Protocolo de WhatsApp com janelas fixas',
-    summary: 'Comunicação assíncrona estruturada',
-    saving: 'Libera ~4h/mês',
-    detail: 'Definir horários fixos para responder evita interrupções e treina o cliente a aguardar. Parece simples mas impacta diretamente o foco no trabalho estratégico.',
-    steps: [
-      'Definir janelas: 9h–9h30 e 16h–16h30',
-      'Informar o cliente da mudança de forma positiva ("para dar respostas mais qualificadas")',
-      'Criar respostas rápidas para as 5 perguntas mais comuns',
-      'Mensagem automática de ausência fora das janelas'
-    ]
-  },
-  {
-    num: 4,
-    title: 'Renegociar contrato ou escalar com segundo cliente',
-    summary: 'Com 14h/mês liberadas, a conta muda completamente',
-    saving: '+R$ 4–6k/mês potencial',
-    detail: 'As automações acima liberam ~14h/mês. A R$ 350/h de mercado, isso vale R$ 4.900 em capacidade disponível — suficiente para absorver um segundo cliente pagante ou renegociar o contrato atual com mais horas formalizadas.',
-    steps: [
-      'Documentar as automações implantadas como argumento de valor',
-      'Mapear possíveis clientes com perfil Chlorophylla para segundo contrato',
-      'Avaliar proposta de upsell: relatório mensal executivo por R$ +500–1.000',
-      'Meta: chegar em R$ 8.000/mês com 2 clientes e mesma carga de horas'
-    ]
-  }
-];
-
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let hourlyRate = 350;
-let monthlyContract = 4000;
-let weeksPerMonth = 4;
+let userTasks = []; // active + custom tasks
+let userData = {};
 let charts = {};
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-window.onload = () => {
-  renderTable();
-  renderPriorities();
-  renderCharts();
-  updateCards();
-};
-
-// ─── RECALCULATE ──────────────────────────────────────────────────────────────
-function recalculate() {
-  hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 350;
-  monthlyContract = parseFloat(document.getElementById('monthlyContract').value) || 4000;
-  weeksPerMonth = parseFloat(document.getElementById('weeksPerMonth').value) || 4;
-  updateCards();
-  renderTable();
-  updateCharts();
+// ─── NAVIGATION ─────────────────────────────────────────────────────────────
+function goToWelcome() {
+  show('welcome'); setProgress(0);
 }
 
-function totalHours() {
-  return TASKS.reduce((sum, t) => {
-    const input = document.getElementById('h_' + t.id);
-    const hw = input ? parseFloat(input.value) || t.hoursPerWeek : t.hoursPerWeek;
-    // t4 is 2x/month = 0.5h/week equivalent (already set)
-    return sum + hw * weeksPerMonth;
-  }, 0);
+function goToWizard() {
+  show('wizard');
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  setProgress(1);
 }
 
-function getTaskHoursPerMonth(t) {
-  const input = document.getElementById('h_' + t.id);
-  const hw = input ? parseFloat(input.value) || t.hoursPerWeek : t.hoursPerWeek;
-  return hw * weeksPerMonth;
+function goToStep2() {
+  if (!validateStep1()) return;
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  setProgress(2);
+  renderTasksCatalog();
 }
 
-function updateCards() {
-  const total = totalHours();
-  const realCost = total * hourlyRate;
-  const implied = monthlyContract / total;
-  const gap = realCost - monthlyContract;
-
-  document.getElementById('c-hours').textContent = total.toFixed(0) + 'h';
-  document.getElementById('c-hours-sub').textContent = `~${(total/weeksPerMonth).toFixed(1)}h/semana × ${weeksPerMonth} semanas`;
-  document.getElementById('c-impliedRate').textContent = 'R$' + Math.round(implied);
-  document.getElementById('c-impliedRate-sub').textContent = `R$ ${fmtNum(monthlyContract)} ÷ ${total.toFixed(0)}h`;
-  document.getElementById('c-marketRate').textContent = 'R$' + hourlyRate;
-  document.getElementById('c-realCost').textContent = 'R$' + fmtNum(Math.round(realCost));
-  document.getElementById('c-realCost-sub').textContent = `${total.toFixed(0)}h × R$ ${hourlyRate} = custo de oportunidade`;
-
-  document.getElementById('alertText').innerHTML =
-    `Você entrega <strong>R$ ${fmtNum(Math.round(realCost))}</strong> de valor de mercado e recebe <strong>R$ ${fmtNum(monthlyContract)}</strong>. O gap de <strong>R$ ${fmtNum(Math.round(gap))}/mês</strong> é composto principalmente por tarefas repetitivas que podem ser automatizadas ou delegadas. As ações abaixo podem recuperar até <strong>14h/mês</strong> sem perder qualidade.`;
+function goToStep1() {
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  setProgress(1);
 }
 
-// ─── TABLE ────────────────────────────────────────────────────────────────────
-function renderTable() {
-  const tbody = document.getElementById('tasksBody');
+function goToResults() {
+  const active = getActiveTasks();
+  if (active.length < 2) { alert('Selecione pelo menos 2 atividades para continuar.'); return; }
+  collectUserData();
+  show('results');
+  setProgress(3);
+  buildResults();
+  window.scrollTo(0, 0);
+}
+
+function restart() {
+  // destroy charts
+  if (charts.donut) { charts.donut.destroy(); charts.donut = null; }
+  if (charts.bar)   { charts.bar.destroy();   charts.bar = null; }
+  userTasks = [];
+  goToWelcome();
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setProgress(step) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('ps' + i);
+    el.classList.remove('active','done');
+    if (i < step) el.classList.add('done');
+    if (i === step) el.classList.add('active');
+  }
+}
+
+// ─── VALIDATION ─────────────────────────────────────────────────────────────
+function validateStep1() {
+  let ok = true;
+  const fields = [
+    { id:'f-project', inp:'inp-project' },
+    { id:'f-contract', inp:'inp-contract' },
+    { id:'f-rate', inp:'inp-rate' },
+  ];
+  fields.forEach(f => {
+    const el = document.getElementById(f.id);
+    const val = document.getElementById(f.inp).value.trim();
+    if (!val || (f.inp !== 'inp-project' && parseFloat(val) <= 0)) {
+      el.classList.add('has-error'); ok = false;
+    } else {
+      el.classList.remove('has-error');
+    }
+  });
+  return ok;
+}
+
+// ─── TASKS CATALOG RENDER ────────────────────────────────────────────────────
+function renderTasksCatalog() {
+  const container = document.getElementById('tasksList');
+  // Build from catalog + any custom tasks already added
+  const existing = userTasks.filter(t => t.custom);
+
+  container.innerHTML = CATALOG.map(t => {
+    const isActive = userTasks.find(u => u.id === t.id);
+    return `
+    <div class="task-item ${isActive ? 'active-task' : ''}" id="ti_${t.id}" onclick="toggleTask('${t.id}')">
+      <div class="task-toggle"></div>
+      <div class="task-info">
+        <span class="task-name-text">${t.name}</span>
+        <span class="task-cat-text">${t.cat} · ${t.action === 'auto' ? '🤖 Automatizável' : t.action === 'delegate' ? '👤 Delegável' : '✅ Estratégico'}</span>
+      </div>
+      <div class="task-hours-wrap" onclick="event.stopPropagation()">
+        <input class="task-hours-input" id="th_${t.id}" type="number" value="${isActive ? isActive.hw : t.hw}" min="0.25" max="80" step="0.25">
+        <span class="task-hours-lbl">h/sem</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Re-render custom tasks
+  existing.forEach(t => renderCustomTaskItem(t));
+}
+
+function toggleTask(id) {
+  const cat = CATALOG.find(c => c.id === id);
+  if (!cat) return;
+  const idx = userTasks.findIndex(t => t.id === id);
+  const el = document.getElementById('ti_' + id);
+  if (idx >= 0) {
+    userTasks.splice(idx, 1);
+    el.classList.remove('active-task');
+  } else {
+    const hw = parseFloat(document.getElementById('th_' + id)?.value) || cat.hw;
+    userTasks.push({ ...cat, hw });
+    el.classList.add('active-task');
+  }
+}
+
+function getActiveTasks() {
+  // From catalog
+  const fromCatalog = CATALOG.filter(c => userTasks.find(u => u.id === c.id)).map(c => {
+    const u = userTasks.find(u => u.id === c.id);
+    const inputEl = document.getElementById('th_' + c.id);
+    return { ...c, hw: inputEl ? parseFloat(inputEl.value) || c.hw : u.hw };
+  });
+  // Custom
+  const custom = userTasks.filter(t => t.custom);
+  return [...fromCatalog, ...custom];
+}
+
+// ─── CUSTOM TASK ─────────────────────────────────────────────────────────────
+let customIdCounter = 100;
+
+function toggleCustomForm() {
+  const f = document.getElementById('customForm');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) {
+    document.getElementById('customName').focus();
+  }
+}
+
+function addCustomTask() {
+  const name = document.getElementById('customName').value.trim();
+  const hw   = parseFloat(document.getElementById('customHours').value) || 1;
+  const action = document.getElementById('customAction').value;
+  if (!name) { document.getElementById('customName').focus(); return; }
+
+  const task = {
+    id: 'custom_' + (++customIdCounter),
+    name, cat: 'Personalizada', action, hw, custom: true,
+    why: 'Atividade personalizada adicionada manualmente.',
+    how: ['Avalie a frequência e o tempo real dedicado','Considere automação ou delegação se for repetitiva']
+  };
+
+  userTasks.push(task);
+  renderCustomTaskItem(task);
+
+  document.getElementById('customName').value = '';
+  document.getElementById('customHours').value = '';
+  document.getElementById('customForm').classList.remove('open');
+}
+
+function renderCustomTaskItem(task) {
+  const container = document.getElementById('tasksList');
+  const div = document.createElement('div');
+  div.className = 'task-item active-task';
+  div.id = 'ti_' + task.id;
+  div.innerHTML = `
+    <div class="task-toggle"></div>
+    <div class="task-info">
+      <span class="task-name-text">${task.name}</span>
+      <span class="task-cat-text">Personalizada · ${task.action === 'auto' ? '🤖 Automatizável' : task.action === 'delegate' ? '👤 Delegável' : '✅ Estratégico'}</span>
+    </div>
+    <div class="task-hours-wrap" style="opacity:1;pointer-events:all">
+      <input class="task-hours-input" id="th_${task.id}" type="number" value="${task.hw}" min="0.25" max="80" step="0.25">
+      <span class="task-hours-lbl">h/sem</span>
+    </div>`;
+  container.appendChild(div);
+}
+
+// ─── COLLECT DATA ────────────────────────────────────────────────────────────
+function collectUserData() {
+  userData = {
+    name:     document.getElementById('inp-name').value.trim() || null,
+    project:  document.getElementById('inp-project').value.trim(),
+    contract: parseFloat(document.getElementById('inp-contract').value) || 0,
+    rate:     parseFloat(document.getElementById('inp-rate').value) || 300,
+    weeks:    parseFloat(document.getElementById('inp-weeks').value) || 4,
+    tasks:    getActiveTasks(),
+  };
+}
+
+// ─── BUILD RESULTS ───────────────────────────────────────────────────────────
+function buildResults() {
+  const { name, project, contract, rate, weeks, tasks } = userData;
+
+  document.getElementById('r-projectName').textContent = project;
+
+  const totalH = tasks.reduce((s, t) => s + t.hw * weeks, 0);
+  const realCost = totalH * rate;
+  const implied  = contract / totalH;
+  const gap      = realCost - contract;
+
+  // Cards
+  document.getElementById('rc-hours').textContent = totalH.toFixed(0) + 'h';
+  document.getElementById('rc-hours-sub').textContent = `~${(totalH/weeks).toFixed(1)}h/semana × ${weeks} sem`;
+  document.getElementById('rc-implied').textContent = 'R$' + Math.round(implied);
+  document.getElementById('rc-implied-sub').textContent = `R$ ${fmt(contract)} ÷ ${totalH.toFixed(0)}h`;
+  document.getElementById('rc-market').textContent = 'R$' + rate;
+  document.getElementById('rc-real').textContent = 'R$' + fmt(Math.round(realCost));
+  document.getElementById('rc-real-sub').textContent = `${totalH.toFixed(0)}h × R$ ${rate}`;
+
+  // Alert
+  const gapPct = Math.round((gap / realCost) * 100);
+  document.getElementById('r-alertText').innerHTML =
+    `${name ? name + ', você' : 'Você'} entrega <strong>R$ ${fmt(Math.round(realCost))}</strong> de valor de mercado e recebe <strong>R$ ${fmt(contract)}</strong>. O gap de <strong>R$ ${fmt(Math.round(gap))}/mês (${gapPct}%)</strong> é composto principalmente por tarefas repetitivas. As ações abaixo mostram por onde começar.`;
+
+  // Table
+  buildTable(tasks, rate, weeks);
+
+  // Charts
+  buildCharts(tasks, rate, weeks);
+
+  // Priorities
+  buildPriorities(tasks, rate, weeks);
+}
+
+function buildTable(tasks, rate, weeks) {
+  const tbody = document.getElementById('r-tbody');
   tbody.innerHTML = '';
 
-  TASKS.forEach((t, i) => {
-    const hpm = getTaskHoursPerMonth(t);
-    const cost = hpm * hourlyRate;
+  tasks.forEach(t => {
+    const hpm  = t.hw * weeks;
+    const cost = hpm * rate;
+    const isRed = t.action === 'auto';
 
-    // Main row
     const tr = document.createElement('tr');
-    tr.className = 'task-row';
-    tr.id = 'row_' + t.id;
-    tr.onclick = () => toggleDetail(t.id);
+    tr.className = 't-row';
+    tr.id = 'tr_' + t.id;
+    tr.onclick = () => toggleRow(t.id);
     tr.innerHTML = `
-      <td style="text-align:center"><span class="chevron" id="chev_${t.id}">▶</span></td>
-      <td class="task-name">${t.name}</td>
-      <td><span class="tag ${t.categoryClass}">${t.category}</span></td>
-      <td style="color:var(--muted);font-size:12px">${t.freq}</td>
-      <td>
-        <input class="hours-input" id="h_${t.id}" type="number" value="${t.hoursPerWeek}" min="0.25" max="40" step="0.25"
-          onclick="event.stopPropagation()"
-          onchange="recalculate()"
-          title="Horas por semana">
-        <span style="font-size:11px;color:var(--muted)">h/sem</span>
-        <span style="font-size:11px;color:var(--muted);margin-left:4px">(=${hpm.toFixed(1)}h/mês)</span>
-      </td>
-      <td class="cost-value ${t.costHighlight ? 'cost-highlight' : ''}">R$ ${fmtNum(Math.round(cost))}</td>
-      <td><span class="tag ${t.actionClass}">${t.actionLabel}</span></td>
-    `;
+      <td style="text-align:center"><span class="chev" id="ch_${t.id}">▶</span></td>
+      <td class="t-name">${t.name}</td>
+      <td class="col-cat"><span class="tag ${catTag(t)}">${t.cat}</span></td>
+      <td class="col-freq" style="color:var(--muted);font-size:12px">${fmtFreq(t.hw)}</td>
+      <td style="font-size:13px;color:#ccc">${hpm.toFixed(1)}h</td>
+      <td class="cv ${isRed ? 'cv-r' : ''}">R$ ${fmt(Math.round(cost))}</td>
+      <td><span class="tag ${actionTag(t.action)}">${actionLabel(t.action)}</span></td>`;
     tbody.appendChild(tr);
 
-    // Detail row
-    const detail = document.createElement('tr');
-    detail.className = 'expand-detail';
-    detail.id = 'detail_' + t.id;
-    detail.innerHTML = `
-      <td colspan="7">
-        <div class="expand-inner">
-          <div class="detail-block">
-            <strong>Por que essa tarefa está aqui?</strong>
-            <p>${t.why}</p>
-          </div>
-          <div class="detail-block">
-            <strong>Como otimizar</strong>
-            <ul>${t.how.map(h => `<li>${h}</li>`).join('')}</ul>
-          </div>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(detail);
+    const det = document.createElement('tr');
+    det.className = 't-detail';
+    det.id = 'td_' + t.id;
+    det.innerHTML = `<td colspan="7"><div class="t-expand">
+      <div class="d-block"><strong>Por que essa tarefa está aqui?</strong><p>${t.why}</p></div>
+      <div class="d-block"><strong>Como otimizar</strong><ul>${t.how.map(h=>`<li>${h}</li>`).join('')}</ul></div>
+    </div></td>`;
+    tbody.appendChild(det);
   });
 
-  // Total row
-  const total = totalHours();
-  const totalCost = total * hourlyRate;
-  const totalTr = document.createElement('tr');
-  totalTr.className = 'total-row';
-  totalTr.innerHTML = `
-    <td></td>
-    <td style="font-size:14px">TOTAL</td>
-    <td>—</td>
-    <td>—</td>
-    <td style="font-family:'Space Grotesk',sans-serif;font-size:14px">${total.toFixed(0)}h/mês</td>
-    <td class="cost-value" style="font-size:15px">R$ ${fmtNum(Math.round(totalCost))}</td>
-    <td>—</td>
-  `;
-  tbody.appendChild(totalTr);
+  const total = tasks.reduce((s,t)=>s+t.hw*weeks,0);
+  const totalCost = total * rate;
+  const tr2 = document.createElement('tr');
+  tr2.className = 'total-row';
+  tr2.innerHTML = `<td></td><td>TOTAL</td><td class="col-cat">—</td><td class="col-freq">—</td>
+    <td style="font-family:'Space Grotesk',sans-serif;font-weight:700">${total.toFixed(0)}h/mês</td>
+    <td class="cv" style="font-size:15px">R$ ${fmt(Math.round(totalCost))}</td><td>—</td>`;
+  tbody.appendChild(tr2);
 }
 
-function toggleDetail(id) {
-  const row = document.getElementById('row_' + id);
-  const detail = document.getElementById('detail_' + id);
-  const chev = document.getElementById('chev_' + id);
-  const isOpen = detail.classList.contains('open');
-  detail.classList.toggle('open', !isOpen);
-  row.classList.toggle('expanded', !isOpen);
+function toggleRow(id) {
+  document.getElementById('tr_'+id).classList.toggle('expanded');
+  document.getElementById('td_'+id).classList.toggle('open');
 }
 
-// ─── PRIORITIES ───────────────────────────────────────────────────────────────
-function renderPriorities() {
-  const container = document.getElementById('priorityCard');
-  container.innerHTML = PRIORITIES.map((p, i) => `
-    <div class="priority-item" id="pi_${i}" onclick="togglePriority(${i})">
-      <div class="priority-num">${p.num}</div>
-      <div class="priority-summary">
-        <div>
-          <strong>${p.title}</strong>
-          <p>${p.summary}</p>
-        </div>
-        <div class="priority-right">
-          <span class="saving-badge">${p.saving}</span>
-          <span class="p-chevron" id="pchev_${i}">▶</span>
-        </div>
-      </div>
-    </div>
-    <div class="priority-detail" id="pd_${i}">
-      <p>${p.detail}</p>
-      <ul>${p.steps.map(s => `<li>${s}</li>`).join('')}</ul>
-    </div>
-  `).join('');
-}
+function buildCharts(tasks, rate, weeks) {
+  if (charts.donut) { charts.donut.destroy(); }
+  if (charts.bar)   { charts.bar.destroy(); }
 
-function togglePriority(i) {
-  const item = document.getElementById('pi_' + i);
-  const detail = document.getElementById('pd_' + i);
-  const chev = document.getElementById('pchev_' + i);
-  const isOpen = detail.classList.contains('open');
-  detail.classList.toggle('open', !isOpen);
-  item.classList.toggle('p-open', !isOpen);
-}
-
-// ─── CHARTS ───────────────────────────────────────────────────────────────────
-function getChartData() {
-  let auto = 0, delegate = 0, keep = 0;
-  TASKS.forEach(t => {
-    const hpm = getTaskHoursPerMonth(t);
-    if (t.action === 'auto') auto += hpm;
-    else if (t.action === 'delegate') delegate += hpm;
-    else keep += hpm;
+  let auto=0, del=0, keep=0;
+  tasks.forEach(t => {
+    const h = t.hw * weeks;
+    if (t.action==='auto') auto+=h;
+    else if (t.action==='delegate') del+=h;
+    else keep+=h;
   });
-  return { auto, delegate, keep };
-}
 
-function renderCharts() {
-  const { auto, delegate, keep } = getChartData();
-
-  document.getElementById('leg-auto').textContent = `Automatizar (${auto.toFixed(0)}h)`;
-  document.getElementById('leg-del').textContent = `Delegar/Otimizar (${delegate.toFixed(0)}h)`;
-  document.getElementById('leg-keep').textContent = `Estratégico (${keep.toFixed(0)}h)`;
+  document.getElementById('leg-a').textContent = `Automatizar (${auto.toFixed(0)}h)`;
+  document.getElementById('leg-d').textContent = `Delegar (${del.toFixed(0)}h)`;
+  document.getElementById('leg-k').textContent = `Estratégico (${keep.toFixed(0)}h)`;
 
   charts.donut = new Chart(document.getElementById('donutChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Automatizar', 'Delegar/Otimizar', 'Estratégico'],
-      datasets: [{
-        data: [auto, delegate, keep],
-        backgroundColor: ['#E05555', '#E8C03A', '#4CAF72'],
-        borderColor: '#2C2C2C',
-        borderWidth: 3,
-        hoverOffset: 6
-      }]
+      labels: ['Automatizar','Delegar','Estratégico'],
+      datasets: [{ data:[auto,del,keep], backgroundColor:['#E05555','#E8C03A','#4CAF72'], borderColor:'#2C2C2C', borderWidth:3, hoverOffset:6 }]
     },
-    options: {
-      responsive: true,
-      cutout: '68%',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h/mês` } }
-      }
-    }
+    options: { responsive:true, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toFixed(1)}h/mês`}} } }
   });
 
   charts.bar = new Chart(document.getElementById('barChart'), {
     type: 'bar',
     data: {
-      labels: TASKS.map(t => t.name.length > 20 ? t.name.slice(0,20) + '…' : t.name),
+      labels: tasks.map(t => t.name.length>18 ? t.name.slice(0,18)+'…' : t.name),
       datasets: [{
-        label: 'Custo real (R$)',
-        data: TASKS.map(t => Math.round(getTaskHoursPerMonth(t) * hourlyRate)),
-        backgroundColor: TASKS.map(t =>
-          t.action === 'auto' ? '#E05555' : t.action === 'delegate' ? '#E8C03A' : '#4CAF72'
-        ),
-        borderRadius: 6,
-        borderSkipped: false
+        label:'Custo real (R$)',
+        data: tasks.map(t => Math.round(t.hw*weeks*rate)),
+        backgroundColor: tasks.map(t => t.action==='auto'?'#E05555':t.action==='delegate'?'#E8C03A':'#4CAF72'),
+        borderRadius:5, borderSkipped:false
       }]
     },
     options: {
-      responsive: true,
-      indexAxis: 'y',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` R$ ${fmtNum(ctx.parsed.x)}` } }
-      },
-      scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: { color: '#888', callback: v => 'R$' + (v/1000).toFixed(1) + 'k' }
-        },
-        y: { grid: { display: false }, ticks: { color: '#aaa', font: { size: 11 } } }
+      responsive:true, indexAxis:'y',
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` R$ ${fmt(ctx.parsed.x)}`}} },
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#888',callback:v=>'R$'+(v/1000).toFixed(1)+'k'} },
+        y:{ grid:{display:false}, ticks:{color:'#aaa',font:{size:11}} }
       }
     }
   });
 }
 
-function updateCharts() {
-  const { auto, delegate, keep } = getChartData();
+function buildPriorities(tasks, rate, weeks) {
+  const autoTasks  = tasks.filter(t=>t.action==='auto');
+  const delTasks   = tasks.filter(t=>t.action==='delegate');
+  const totalH     = tasks.reduce((s,t)=>s+t.hw*weeks,0);
+  const autoH      = autoTasks.reduce((s,t)=>s+t.hw*weeks,0);
+  const delH       = delTasks.reduce((s,t)=>s+t.hw*weeks,0);
 
-  document.getElementById('leg-auto').textContent = `Automatizar (${auto.toFixed(0)}h)`;
-  document.getElementById('leg-del').textContent = `Delegar/Otimizar (${delegate.toFixed(0)}h)`;
-  document.getElementById('leg-keep').textContent = `Estratégico (${keep.toFixed(0)}h)`;
+  const priorities = [];
 
-  charts.donut.data.datasets[0].data = [auto, delegate, keep];
-  charts.donut.update();
+  if (autoTasks.length > 0) {
+    priorities.push({
+      num:1,
+      title: `Automatizar ${autoTasks.length} atividade${autoTasks.length>1?'s':''} operacional${autoTasks.length>1?'is':''}`,
+      summary: autoTasks.map(t=>t.name).join(', '),
+      saving: `Libera ${autoH.toFixed(0)}h/mês · R$ ${fmt(Math.round(autoH*rate))}`,
+      detail: `As atividades marcadas como automatizáveis representam ${autoH.toFixed(0)}h/mês de trabalho repetitivo que não exige sua inteligência estratégica. Automatizá-las pode liberar R$ ${fmt(Math.round(autoH*rate))} em capacidade mensal.`,
+      steps: [
+        'Mapeie quais ferramentas cada tarefa usa (GA4, Meta, Google Ads, plataforma de e-commerce)',
+        'Configure alertas automáticos no lugar de verificações manuais',
+        'Use Looker Studio para consolidar relatórios sem coleta manual',
+        'Avalie ferramentas de automação: Make, Zapier ou scripts de plataforma'
+      ]
+    });
+  }
 
-  charts.bar.data.datasets[0].data = TASKS.map(t => Math.round(getTaskHoursPerMonth(t) * hourlyRate));
-  charts.bar.update();
+  if (delTasks.length > 0) {
+    priorities.push({
+      num: priorities.length + 1,
+      title: `Delegar ${delTasks.length} atividade${delTasks.length>1?'s':''} operacional${delTasks.length>1?'is':''}`,
+      summary: delTasks.map(t=>t.name).join(', '),
+      saving: `Libera ${delH.toFixed(0)}h/mês · R$ ${fmt(Math.round(delH*rate))}`,
+      detail: `Estas atividades podem ser executadas por um assistente, estagiário ou freelancer com orientação. Liberar ${delH.toFixed(0)}h/mês do seu tempo equivale a R$ ${fmt(Math.round(delH*rate))} recuperados.`,
+      steps: [
+        'Crie SOPs (procedimentos padrão) para as tarefas mais comuns',
+        'Identifique um perfil júnior ou freelancer para executar',
+        'Mantenha revisão semanal para garantir qualidade',
+        'Reinvista o tempo liberado em análise e novos clientes'
+      ]
+    });
+  }
+
+  priorities.push({
+    num: priorities.length + 1,
+    title: 'Renegociar contrato ou escalar com novo cliente',
+    summary: `Com ${(autoH+delH).toFixed(0)}h/mês liberadas, a conta muda`,
+    saving: `Potencial: +R$ ${fmt(Math.round((autoH+delH)*rate/2))}/mês`,
+    detail: `Com as automações e delegações implementadas, você libera ${(autoH+delH).toFixed(0)}h/mês. A R$ ${userData.rate}/h de mercado, isso vale R$ ${fmt(Math.round((autoH+delH)*rate))} em capacidade — suficiente para absorver um novo cliente ou renegociar o atual.`,
+    steps: [
+      'Documente os resultados entregues como argumento de valor',
+      'Mapeie clientes com perfil similar ao atual para segundo contrato',
+      'Avalie upsell de serviços: relatório executivo, estratégia trimestral',
+      `Meta: chegar em R$ ${fmt(userData.contract * 2)}/mês com mesma carga de horas`
+    ]
+  });
+
+  const container = document.getElementById('r-priorities');
+  container.innerHTML = priorities.map((p,i) => `
+    <div class="p-item" id="pi_${i}" onclick="toggleP(${i})">
+      <div class="p-num">${p.num}</div>
+      <div class="p-sum">
+        <div class="p-text">
+          <strong>${p.title}</strong>
+          <p>${p.summary}</p>
+        </div>
+        <div class="p-right">
+          <span class="s-badge">${p.saving}</span>
+          <span class="p-chev" id="pc_${i}">▶</span>
+        </div>
+      </div>
+    </div>
+    <div class="p-detail" id="pd_${i}">
+      <p>${p.detail}</p>
+      <ul>${p.steps.map(s=>`<li>${s}</li>`).join('')}</ul>
+    </div>
+  `).join('');
 }
 
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function fmtNum(n) { return n.toLocaleString('pt-BR'); }
+function toggleP(i) {
+  document.getElementById('pi_'+i).classList.toggle('p-open');
+  document.getElementById('pd_'+i).classList.toggle('open');
+}
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function fmt(n) { return n.toLocaleString('pt-BR'); }
+
+function fmtFreq(hw) {
+  if (hw >= 7) return 'Diário';
+  if (hw >= 4) return '4–5×/sem';
+  if (hw >= 2) return '2–3×/sem';
+  if (hw >= 1) return '1×/sem';
+  return '2×/mês';
+}
+
+function catTag(t) {
+  return t.cat==='Estratégico'?'tag-g': t.cat==='Relatórios'?'tag-o':'tag-o';
+}
+
+function actionTag(a) {
+  return a==='auto'?'tag-r': a==='delegate'?'tag-y':'tag-g';
+}
+
+function actionLabel(a) {
+  return a==='auto'?'🤖 Automatizar': a==='delegate'?'👤 Delegar':'✅ Manter';
+}
 </script>
 </body>
 </html>
